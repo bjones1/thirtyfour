@@ -153,6 +153,18 @@ fn element_send_keys(test_harness: TestHarness) -> WebDriverResult<()> {
         assert_eq!(elem.prop("value").await?.unwrap(), "");
         assert_eq!(elem.value().await?.unwrap(), "");
 
+        // Test that cursor movement to beginning and end of a block works.
+        let textarea = c.find(By::Id("some_textarea")).await?;
+        textarea.send_keys("\n2\n3").await?;
+        textarea.send_keys(if cfg!(target_os = "macos") {
+            Key::Command + Key::Up
+        } else {
+            Key::Control + Key::Home
+        }).await?;
+        textarea.send_keys("1").await?;
+        assert_eq!(textarea.prop("value").await?.unwrap(), "1\n2\n3");
+        assert_eq!(textarea.value().await?.unwrap(), "1\n2\n3");
+
         Ok(())
     })
 }
